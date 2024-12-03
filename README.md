@@ -1,3 +1,13 @@
 # ChatMLGPT
 
-Telegram bot for speak with different chat bots
+Телеграм бот для различных нейросетей
+
+Чтобы запустить, нужно скопировать файл Settings.py.template с названием Settings.py и изменить внутри входные данные.
+Затем, для работы всех скриптов, нужно установить необходимые зависимости:
+```
+python -m pip install -r req.txt
+```
+Запуск с помощью команды:
+```
+python __main__.py
+```
