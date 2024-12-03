@@ -1,25 +1,32 @@
 import asyncio
-
-import aiogram
+import logging
 
 from aiogram import Bot, Dispatcher
-from aiogram.filters import CommandStart
-from aiogram.types import Message
 
-from Settings import BOT_TOKEN
+from Settings import BOT_TOKEN, DEBUG, out
+
+from ChatGPT.handlers import router
+
+from Database import init_tables
 
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
 
 
-@dp.message(CommandStart())
-async def cmd_start(message: Message):
-    await message.answer('Привет!')
-
-
+# Главная функция запуска бота
 async def main():
+    dp.include_router(router)
     await dp.start_polling(bot)
 
 
+# Точка входа в скрипт
 if __name__ == '__main__':
-    asyncio.run(main())
+    # Инициализация таблиц
+    init_tables()
+    # Включение дополнительного логирования
+    if DEBUG:
+        logging.basicConfig(level=logging.INFO)
+    try:
+        asyncio.run(main())
+    except KeyboardInterrupt as e:
+        out("Остановка бота!", "r")
