@@ -13,8 +13,8 @@ router = Router()
 async def cmd_start(message: Message):
     await message.delete()
     await message.answer("Привет!")
-    await Database.new_user(message.from_user.id)
+    Database.new_user(message.from_user.id)
     if DEBUG:
         out("Бот: Успешно выполнен обработчик команды /start. "
             f"Пользователь: {message.from_user.first_name}. "
-            f"User ID: {message.from_user.id}.\n", "g")
+            f"User ID: {message.from_user.id}.", "g")

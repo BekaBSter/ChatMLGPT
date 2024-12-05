@@ -5,7 +5,7 @@ from aiogram import Bot, Dispatcher
 
 from Settings import BOT_TOKEN, DEBUG, out
 
-from ChatGPT.handlers import router
+from main_handlers import router
 
 from Database import init_tables
 

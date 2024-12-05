@@ -48,12 +48,12 @@ def init_tables():
 # Создание нового пользователя в базе данных
 def new_user(user_id):
     conn, cur = db_connect()
-    QUERY = f""
-    cur.execute()
+    # QUERY = f""
+    # cur.execute()
     disconnect(conn)
     if DEBUG:
         out("База данных: создан новый пользователь! "
-            f"User ID: {user_id}.\n", "g")
+            f"User ID: {user_id}.", "g")
 
 
 # Поиск пользователя в базе данных
