@@ -72,7 +72,7 @@ async def change_neuro(callback: CallbackQuery):
     neuro = callback.data.split("_")[1]
     await callback.message.answer(f"Выбрана нейросеть {neuro}. Введите для нее ваш запрос.")
     first_name = callback.message.from_user.first_name
-    user_id = callback.message.from_user.id
+    user_id = callback.message.chat.id
     Database.update_neuro_user(user_id, neuro)
     out(f"Бот: успешно выполнен обработчик обратного вызова. "
         f"Пользователь: {first_name}. "
