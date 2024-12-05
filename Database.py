@@ -67,7 +67,7 @@ def new_user(user_id, first_name):
 def search_user(user_id):
     conn, cur = db_connect()
     QUERY = f'''
-    SELECT user_id
+    SELECT user_id, neuro
     FROM users
     WHERE user_id = '{user_id}'
     '''
@@ -77,14 +77,14 @@ def search_user(user_id):
         if user is not None:
             out(f"База данных: Пользователь найден. User_id: {user_id}.", "g")
             isSearch = True
+            neuro = user[1]
+            db_disconnect(conn, cur)
+            return isSearch, neuro
         else:
             out(f"База данных: Пользователь не найден. User_id: {user_id}.", "g")
-            isSearch = False
     except Error as e:
         out(f"База данных: Ошибка поиска пользователя: {e}. User_id: {user_id}.", "r")
-        isSearch = False
-    db_disconnect(conn, cur)
-    return isSearch
+    return None, None
 
 
 def update_neuro_user(user_id, neuro):

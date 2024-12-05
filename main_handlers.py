@@ -21,7 +21,7 @@ async def cmd_start(message: Message, state: FSMContext):
     await message.delete()
     user_id = str(message.from_user.id)
     first_name = message.from_user.first_name
-    if Database.search_user(user_id):
+    if Database.search_user(user_id)[0]:
         await message.answer("Привет! Мы знакомы!", reply_markup=main_kb.main_menu)
     else:
         await message.answer("Привет! Давай познакомимся! Введи свое имя.")
@@ -77,3 +77,18 @@ async def change_neuro(callback: CallbackQuery):
     out(f"Бот: успешно выполнен обработчик обратного вызова. "
         f"Пользователь: {first_name}. "
         f"User_id: {user_id}", "g")
+
+
+@router.message(F.text)
+async def request(message: Message, state: FSMContext):
+    await message.delete()
+    user_id = message.from_user.id
+    isSearch, neuro = Database.search_user(user_id)
+    if isSearch:
+        if neuro is not None:
+            await message.answer(f"Вы выполнили запрос к нейросети {neuro}: {message.text}")
+        else:
+            await message.answer("Выберите нейросеть:", reply_markup=main_kb.change_neuro)
+    else:
+        await message.answer("Привет! Давай познакомимся! Введи свое имя.")
+        await state.set_state(Registration.first_name)
