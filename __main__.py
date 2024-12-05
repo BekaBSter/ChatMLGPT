@@ -24,8 +24,8 @@ if __name__ == '__main__':
     # Инициализация таблиц
     init_tables()
     # Включение дополнительного логирования
-    if DEBUG:
-        logging.basicConfig(level=logging.INFO)
+    # if DEBUG:
+    #     logging.basicConfig(level=logging.INFO)
     try:
         asyncio.run(main())
     except KeyboardInterrupt as e:
