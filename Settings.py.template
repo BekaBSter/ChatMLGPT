@@ -1,24 +1,21 @@
-# Данные для подключения к базе данных
+import datetime
+
 DB_USER = ""
 DB_PASSWORD = ""
 DB_HOST = ""
 DB_PORT = 0
 DB_DATABASE = ""
 
-# Токен бота телеграм
 BOT_TOKEN = ""
 
-# ВКЛ/ВЫКЛ режима отладки
 DEBUG = True
 
-# Изменение цветов вывода сообщений режима отладки
+
 def out(text, color="b"):
-    # Зеленый цвет - для вывода успешных конструкций
-    if color == "g":
-        print(f"\033[32m{text}")
-    # Красный цвет - для вывода неуспешных конструкций
-    elif color == "r":
-        print(f"\033[31m{text}")
-    # Синий цвет - для вывода неизвестных конструкций
-    else:
-        print(f"\033[34m{text}")
+    colors = {
+        "g": "32",
+        "r": "31",
+        "b": "34"
+    }
+    time = datetime.datetime.now()
+    print(f"{time}: \033[{colors[color]}m{text}\033[0m")
