@@ -24,7 +24,7 @@ async def cmd_start(message: Message, state: FSMContext):
     await message.delete()
     user_id = str(message.from_user.id)
     first_name = message.from_user.first_name
-    isSearch, _, _ = Database.search_user(user_id)
+    isSearch = Database.search_user(user_id)
     if isSearch:
         await message.answer("Привет! Мы знакомы!", reply_markup=main_kb.main_menu)
     else:
@@ -52,7 +52,7 @@ async def enter_promo(message: Message, state: FSMContext):
     isSearch, sum, uses = Database.search_promocode(promocode)
     if isSearch:
         if user_id not in uses:
-            _, _, balance = Database.search_user(user_id)
+            balance = Database.get_balance_user(user_id)
             balance += sum
             Database.update_balance(user_id, balance)
             uses.append(user_id)
@@ -114,8 +114,10 @@ async def change_neuro(callback: CallbackQuery):
 async def request(message: Message, state: FSMContext):
     await message.delete()
     user_id = message.from_user.id
-    isSearch, neuro, balance = Database.search_user(user_id)
+    isSearch = Database.search_user(user_id)
     if isSearch:
+        neuro = Database.get_neuro_user(user_id)
+        balance = Database.get_balance_user(user_id)
         if neuro is not None:
             if balance < 0.5:
                 await message.answer(f"Недостаточно средств!")

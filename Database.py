@@ -41,7 +41,8 @@ def init_tables():
                         first_name VARCHAR(255),
                         neuro VARCHAR(255),
                         balance FLOAT,
-                        ref varchar(255)
+                        ref varchar(255),
+                        invite_ref varchar(255)
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
                 '''
         QUERY_2 = '''
@@ -80,25 +81,62 @@ def new_user(user_id, first_name):
 def search_user(user_id):
     conn, cur = db_connect()
     QUERY = f'''
-    SELECT user_id, neuro, balance
+    SELECT user_id
     FROM users
     WHERE user_id = '{user_id}'
     '''
     try:
         cur.execute(QUERY)
-        user = cur.fetchone()
-        if user is not None:
+        if cur.fetchone() is not None:
             out(f"База данных: Пользователь найден. User_id: {user_id}.", "g")
-            isSearch = True
-            neuro = user[1]
-            balance = user[2]
             db_disconnect(conn, cur)
-            return isSearch, neuro, balance
+            return True
         else:
             out(f"База данных: Пользователь не найден. User_id: {user_id}.", "g")
+            db_disconnect(conn, cur)
+            return False
     except Error as e:
         out(f"База данных: Ошибка поиска пользователя: {e}. User_id: {user_id}.", "r")
-    return None, None, None
+    db_disconnect(conn, cur)
+    return False
+
+
+def get_neuro_user(user_id):
+    conn, cur = db_connect()
+    QUERY = f'''
+    SELECT neuro
+    FROM users
+    WHERE user_id = '{user_id}'
+    '''
+    try:
+        cur.execute(QUERY)
+        neuro = cur.fetchone()[0]
+        out(f"База данных: Успешный запрос нейросети пользователя. User_id: {user_id}.", "g")
+        db_disconnect(conn, cur)
+        return neuro
+    except Error as e:
+        out(f"База данных: Ошибка запроса нейросети пользователя: {e}. User_id: {user_id}.", "r")
+    db_disconnect(conn, cur)
+    return None
+
+
+def get_balance_user(user_id):
+    conn, cur = db_connect()
+    QUERY = f'''
+        SELECT balance
+        FROM users
+        WHERE user_id = '{user_id}'
+        '''
+    try:
+        cur.execute(QUERY)
+        balance = cur.fetchone()[0]
+        out(f"База данных: Успешный запрос баланса пользователя. User_id: {user_id}.", "g")
+        db_disconnect(conn, cur)
+        return balance
+    except Error as e:
+        out(f"База данных: Ошибка запроса баланса пользователя: {e}. User_id: {user_id}.", "r")
+    db_disconnect(conn, cur)
+    return None
 
 
 def search_promocode(promocode):
@@ -119,12 +157,15 @@ def search_promocode(promocode):
                 uses = json.loads(uses)
             else:
                 uses = []
+            db_disconnect(conn, cur)
             return True, sum, uses
         else:
             out(f"База данных: Промокод не найден. Promocode: {promocode}.", "g")
+            db_disconnect(conn, cur)
             return False, 0, []
     except Error as e:
         out(f"База данных: Ошибка поиска промокода: {e}. Promocode: {promocode}", "r")
+    db_disconnect(conn, cur)
     return False, 0, None, []
 
 
