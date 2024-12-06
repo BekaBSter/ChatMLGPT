@@ -1,4 +1,4 @@
-from aiogram.filters import CommandStart
+from aiogram.filters import CommandStart, Command
 from aiogram.types import Message, CallbackQuery
 from Settings import DEBUG, out
 from aiogram import Router, F
@@ -12,7 +12,10 @@ router = Router()
 
 class Registration(StatesGroup):
     first_name = State()
-    past_message = State()
+
+
+class Promo(StatesGroup):
+    promocode = State()
 
 
 # Начало работы с ботом посредством команды Start
@@ -33,10 +36,32 @@ async def cmd_start(message: Message, state: FSMContext):
             f"User ID: {user_id}.", "g")
 
 
+@router.message(Command("promocode"))
+async def promo(message: Message, state: FSMContext):
+    await state.set_state(Promo.promocode)
+    await message.answer("Введите промокод")
+
+
+@router.message(Promo.promocode)
+async def enter_promo(message: Message, state: FSMContext):
+    await state.update_data(promocode=message.text)
+    user_id = message.from_user.id
+    data = await state.get_data()
+    promocode = data["promocode"]
+    await state.clear()
+    isSearch, sum = Database.search_promocode(promocode)
+    if isSearch:
+        _, _, balance = Database.search_user(user_id)
+        balance += sum
+        Database.update_balance(user_id, balance)
+        await message.answer(f"Промокод найден, сумма {sum} рублей зачислена на ваш счет!")
+    else:
+        await message.answer("Промокод не найден!")
+
+
 @router.message(Registration.first_name)
 async def reg_name(message: Message, state: FSMContext):
     await state.update_data(first_name=message.text)
-    await state.set_state(Registration.past_message)
     await message.answer("Регистрация завершена!", reply_markup=main_kb.main_menu)
     data = await state.get_data()
     await state.clear()
@@ -91,7 +116,7 @@ async def request(message: Message, state: FSMContext):
                 await message.answer(f"Недостаточно средств!")
             else:
                 balance -= 0.5
-                Database.neuro_pay(user_id, balance)
+                Database.update_balance(user_id, balance)
                 await message.answer(f"Вы выполнили запрос к нейросети {neuro}: {message.text}")
         else:
             await message.answer("Выберите нейросеть:", reply_markup=main_kb.change_neuro)

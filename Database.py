@@ -33,7 +33,7 @@ def db_disconnect(conn, cur):
 def init_tables():
     conn, cur = db_connect()
     try:
-        QUERY = '''
+        QUERY_1 = '''
         CREATE TABLE IF NOT EXISTS users (
                         id INT AUTO_INCREMENT PRIMARY KEY,
                         user_id VARCHAR(255),
@@ -43,7 +43,15 @@ def init_tables():
                         ref varchar(255)
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
                 '''
-        cur.execute(QUERY)
+        QUERY_2 = '''
+                CREATE TABLE IF NOT EXISTS promocodes (
+                                id INT AUTO_INCREMENT PRIMARY KEY,
+                                promocode varchar(255),
+                                sum FLOAT
+                        ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+                        '''
+        cur.execute(QUERY_1)
+        cur.execute(QUERY_2)
         db_disconnect(conn, cur)
         out("База данных: успешное создание необходимых таблиц!", "g")
     except Error as e:
@@ -91,6 +99,28 @@ def search_user(user_id):
     return None, None, None
 
 
+def search_promocode(promocode):
+    conn, cur = db_connect()
+    QUERY = f'''
+    SELECT promocode, sum
+    FROM promocodes
+    WHERE promocode = '{promocode}'
+    '''
+    try:
+        cur.execute(QUERY)
+        result = cur.fetchone()
+        if result is not None:
+            out(f"База данных: Промокод найден. Promocode: {promocode}.", "g")
+            sum = result[1]
+            return True, sum
+        else:
+            out(f"База данных: Промокод не найден. Promocode: {promocode}.", "g")
+            return False, 0
+    except Error as e:
+        out(f"База данных: Ошибка поиска промокода: {e}. Promocode: {promocode}", "r")
+    return False, 0
+
+
 def update_neuro_user(user_id, neuro):
     conn, cur = db_connect()
     QUERY = f'''
@@ -106,7 +136,7 @@ def update_neuro_user(user_id, neuro):
     db_disconnect(conn, cur)
 
 
-def neuro_pay(user_id, balance):
+def update_balance(user_id, balance):
     conn, cur = db_connect()
     QUERY = f'''
         UPDATE users
