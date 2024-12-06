@@ -49,12 +49,17 @@ async def enter_promo(message: Message, state: FSMContext):
     data = await state.get_data()
     promocode = data["promocode"]
     await state.clear()
-    isSearch, sum = Database.search_promocode(promocode)
+    isSearch, sum, uses = Database.search_promocode(promocode)
     if isSearch:
-        _, _, balance = Database.search_user(user_id)
-        balance += sum
-        Database.update_balance(user_id, balance)
-        await message.answer(f"Промокод найден, сумма {sum} рублей зачислена на ваш счет!")
+        if user_id not in uses:
+            _, _, balance = Database.search_user(user_id)
+            balance += sum
+            Database.update_balance(user_id, balance)
+            uses.append(user_id)
+            Database.update_uses_promocode(promocode, uses)
+            await message.answer(f"Промокод найден, сумма {sum} рублей зачислена на ваш счет!")
+        else:
+            await message.answer(f"Промокод уже был использован!")
     else:
         await message.answer("Промокод не найден!")
 

@@ -1,5 +1,6 @@
 from pymysql import connect, Error
 from Settings import DB_USER, DB_PASSWORD, DB_HOST, DB_PORT, DB_DATABASE, DEBUG, out, generate_random_string
+import json
 
 
 # Подключение к базе данных
@@ -47,7 +48,8 @@ def init_tables():
                 CREATE TABLE IF NOT EXISTS promocodes (
                                 id INT AUTO_INCREMENT PRIMARY KEY,
                                 promocode varchar(255),
-                                sum FLOAT
+                                sum FLOAT,
+                                uses JSON
                         ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
                         '''
         cur.execute(QUERY_1)
@@ -102,7 +104,7 @@ def search_user(user_id):
 def search_promocode(promocode):
     conn, cur = db_connect()
     QUERY = f'''
-    SELECT promocode, sum
+    SELECT promocode, sum, uses
     FROM promocodes
     WHERE promocode = '{promocode}'
     '''
@@ -112,13 +114,18 @@ def search_promocode(promocode):
         if result is not None:
             out(f"База данных: Промокод найден. Promocode: {promocode}.", "g")
             sum = result[1]
-            return True, sum
+            uses = result[2]
+            if uses is not None:
+                uses = json.loads(uses)
+            else:
+                uses = []
+            return True, sum, uses
         else:
             out(f"База данных: Промокод не найден. Promocode: {promocode}.", "g")
-            return False, 0
+            return False, 0, []
     except Error as e:
         out(f"База данных: Ошибка поиска промокода: {e}. Promocode: {promocode}", "r")
-    return False, 0
+    return False, 0, None, []
 
 
 def update_neuro_user(user_id, neuro):
@@ -148,4 +155,20 @@ def update_balance(user_id, balance):
         out(f"База данных: Успешное обновление записи о балансе. User_id: {user_id}.", "g")
     except Error as e:
         out(f"База данных: Ошибка обновления записи о балансе: {e}. User_id: {user_id}.", "r")
+    db_disconnect(conn, cur)
+
+
+def update_uses_promocode(promocode, uses):
+    conn, cur = db_connect()
+    uses = json.dumps(uses)
+    QUERY = f'''
+        UPDATE promocodes
+        SET uses = '{uses}'
+        WHERE promocode = '{promocode}'
+    '''
+    try:
+        cur.execute(QUERY)
+        out(f"База данных: Успешное обновление записи о промокоде. Promocode: {promocode}.", "g")
+    except Error as e:
+        out(f"База данных: ошибка обновления записи о промокоде: {e}. Promocode: {promocode}", "r")
     db_disconnect(conn, cur)
