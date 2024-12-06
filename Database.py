@@ -1,5 +1,5 @@
 from pymysql import connect, Error
-from Settings import DB_USER, DB_PASSWORD, DB_HOST, DB_PORT, DB_DATABASE, DEBUG, out
+from Settings import DB_USER, DB_PASSWORD, DB_HOST, DB_PORT, DB_DATABASE, DEBUG, out, generate_random_string
 
 
 # Подключение к базе данных
@@ -38,7 +38,9 @@ def init_tables():
                         id INT AUTO_INCREMENT PRIMARY KEY,
                         user_id VARCHAR(255),
                         first_name VARCHAR(255),
-                        neuro VARCHAR(255)
+                        neuro VARCHAR(255),
+                        balance FLOAT,
+                        ref varchar(255)
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
                 '''
         cur.execute(QUERY)
@@ -51,10 +53,11 @@ def init_tables():
 # Создание нового пользователя в базе данных
 def new_user(user_id, first_name):
     conn, cur = db_connect()
+    ref = generate_random_string()
     QUERY = f'''
     INSERT
-    INTO users (user_id, first_name)
-    VALUES ('{user_id}', '{first_name}')
+    INTO users (user_id, first_name, balance, ref)
+    VALUES ('{user_id}', '{first_name}', 5.0, '{ref}')
     '''
     cur.execute(QUERY)
     db_disconnect(conn, cur)
@@ -67,7 +70,7 @@ def new_user(user_id, first_name):
 def search_user(user_id):
     conn, cur = db_connect()
     QUERY = f'''
-    SELECT user_id, neuro
+    SELECT user_id, neuro, balance
     FROM users
     WHERE user_id = '{user_id}'
     '''
@@ -78,13 +81,14 @@ def search_user(user_id):
             out(f"База данных: Пользователь найден. User_id: {user_id}.", "g")
             isSearch = True
             neuro = user[1]
+            balance = user[2]
             db_disconnect(conn, cur)
-            return isSearch, neuro
+            return isSearch, neuro, balance
         else:
             out(f"База данных: Пользователь не найден. User_id: {user_id}.", "g")
     except Error as e:
         out(f"База данных: Ошибка поиска пользователя: {e}. User_id: {user_id}.", "r")
-    return None, None
+    return None, None, None
 
 
 def update_neuro_user(user_id, neuro):
@@ -99,4 +103,19 @@ def update_neuro_user(user_id, neuro):
         out(f"База данных: Успешное обновление записи о нейросети. User_id: {user_id}.", "g")
     except Error as e:
         out(f"База данных: ошибка обновления записи о нейросети: {e}. User_id: {user_id}.", "r")
+    db_disconnect(conn, cur)
+
+
+def neuro_pay(user_id, balance):
+    conn, cur = db_connect()
+    QUERY = f'''
+        UPDATE users
+        SET balance = '{balance}'
+        WHERE user_id = '{user_id}'
+        '''
+    try:
+        cur.execute(QUERY)
+        out(f"База данных: Успешное обновление записи о балансе. User_id: {user_id}.", "g")
+    except Error as e:
+        out(f"База данных: Ошибка обновления записи о балансе: {e}. User_id: {user_id}.", "r")
     db_disconnect(conn, cur)

@@ -21,7 +21,8 @@ async def cmd_start(message: Message, state: FSMContext):
     await message.delete()
     user_id = str(message.from_user.id)
     first_name = message.from_user.first_name
-    if Database.search_user(user_id)[0]:
+    isSearch, _, _ = Database.search_user(user_id)
+    if isSearch:
         await message.answer("Привет! Мы знакомы!", reply_markup=main_kb.main_menu)
     else:
         await message.answer("Привет! Давай познакомимся! Введи свое имя.")
@@ -83,10 +84,15 @@ async def change_neuro(callback: CallbackQuery):
 async def request(message: Message, state: FSMContext):
     await message.delete()
     user_id = message.from_user.id
-    isSearch, neuro = Database.search_user(user_id)
+    isSearch, neuro, balance = Database.search_user(user_id)
     if isSearch:
         if neuro is not None:
-            await message.answer(f"Вы выполнили запрос к нейросети {neuro}: {message.text}")
+            if balance < 0.5:
+                await message.answer(f"Недостаточно средств!")
+            else:
+                balance -= 0.5
+                Database.neuro_pay(user_id, balance)
+                await message.answer(f"Вы выполнили запрос к нейросети {neuro}: {message.text}")
         else:
             await message.answer("Выберите нейросеть:", reply_markup=main_kb.change_neuro)
     else:
