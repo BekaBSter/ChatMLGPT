@@ -62,13 +62,13 @@ def init_tables():
 
 
 # Создание нового пользователя в базе данных
-def new_user(user_id, first_name):
+def new_user(user_id, first_name, invite_ref):
     conn, cur = db_connect()
     ref = generate_random_string()
     QUERY = f'''
     INSERT
-    INTO users (user_id, first_name, balance, ref)
-    VALUES ('{user_id}', '{first_name}', 5.0, '{ref}')
+    INTO users (user_id, first_name, balance, ref, invite_ref)
+    VALUES ('{user_id}', '{first_name}', 5.0, '{ref}', '{invite_ref}')
     '''
     cur.execute(QUERY)
     db_disconnect(conn, cur)

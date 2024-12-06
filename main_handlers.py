@@ -12,6 +12,7 @@ router = Router()
 
 class Registration(StatesGroup):
     first_name = State()
+    invite_ref = State()
 
 
 class Promo(StatesGroup):
@@ -67,12 +68,34 @@ async def enter_promo(message: Message, state: FSMContext):
 @router.message(Registration.first_name)
 async def reg_name(message: Message, state: FSMContext):
     await state.update_data(first_name=message.text)
+    await message.answer("Хотите ли вы указать код приглашения?", reply_markup=main_kb.reg_answer)
+
+
+@router.message(Registration.invite_ref)
+async def reg_invite_ref(message: Message, state: FSMContext):
+    await state.update_data(invite_ref=message.text)
     await message.answer("Регистрация завершена!", reply_markup=main_kb.main_menu)
     data = await state.get_data()
     await state.clear()
     user_id = str(message.from_user.id)
-    Database.new_user(user_id, data["first_name"])
+    Database.new_user(user_id, data["first_name"], data["invite_ref"])
     out(f"Бот: Регистрация нового пользователя. User_id: {user_id}", "g")
+
+
+@router.callback_query(F.data.startswith("reg_"))
+async def reg_answer(callback: CallbackQuery, state: FSMContext):
+    if callback.data.split("_")[1] == "yes":
+        await callback.message.delete()
+        await callback.message.answer("Введите код приглашения.")
+        await state.set_state(Registration.invite_ref)
+    else:
+        await callback.message.delete()
+        await callback.message.answer("Регистрация завершена!", reply_markup=main_kb.main_menu)
+        data = await state.get_data()
+        await state.clear()
+        user_id = str(callback.message.chat.id)
+        Database.new_user(user_id, data["first_name"], None)
+        out(f"Бот: Регистрация нового пользователя. User_id: {user_id}", "g")
 
 
 @router.message(F.text.in_({"Выбор нейросети", "Профиль", "Контакты"}))
